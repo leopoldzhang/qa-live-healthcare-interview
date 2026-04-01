@@ -5,25 +5,25 @@
         <div class="doctor-info">
           <img :src="currentDoctor.avatar" :alt="currentDoctor.name" class="doctor-avatar" />
           <div>
-            <h1>{{ currentDoctor.name }}的诊室</h1>
+            <h1>{{ currentDoctor.name }}{{ t('doctorRoom.title') }}</h1>
             <p>{{ currentDoctor.title }} · {{ currentDoctor.department }}</p>
           </div>
         </div>
         <div class="room-actions">
           <a-button @click="copyRoomUrl">
             <CopyOutlined />
-            复制诊室链接
+            {{ t('doctorRoom.copyRoomUrl') }}
           </a-button>
           <a-button danger @click="logout">
             <LogoutOutlined />
-            退出登录
+            {{ t('doctorRoom.logout') }}
           </a-button>
         </div>
       </div>
 
       <div class="room-url">
         <a-alert
-          :message="`诊室URL: ${roomUrl}`"
+          :message="`${t('doctorRoom.roomUrl')}: ${roomUrl}`"
           type="success"
           show-icon
         />
@@ -31,14 +31,14 @@
 
       <div class="questions-section">
         <div class="section-header">
-          <h2>待响应问题 ({{ pendingQuestions.length }})</h2>
+          <h2>{{ t('doctorRoom.pendingQuestions') }} ({{ pendingQuestions.length }})</h2>
           <a-button type="primary" @click="refreshQuestions">
             <ReloadOutlined />
-            刷新
+            {{ t('doctorRoom.refresh') }}
           </a-button>
         </div>
 
-        <a-empty v-if="pendingQuestions.length === 0" description="暂无待响应问题" />
+        <a-empty v-if="pendingQuestions.length === 0" :description="t('doctorRoom.noPendingQuestions')" />
 
         <div v-else class="questions-list">
           <div
@@ -59,11 +59,11 @@
             <div class="question-actions">
               <a-button type="primary" @click="showAnswerModal(question)">
                 <EditOutlined />
-                文字回复
+                {{ t('doctorRoom.textReply') }}
               </a-button>
               <a-button @click="markAsAnswered(question.id)">
                 <CheckOutlined />
-                标记已解答
+                {{ t('doctorRoom.markAnswered') }}
               </a-button>
             </div>
           </div>
@@ -71,7 +71,7 @@
       </div>
 
       <div class="answered-section">
-        <h2>已解答问题 ({{ answeredQuestions.length }})</h2>
+        <h2>{{ t('doctorRoom.answeredQuestions') }} ({{ answeredQuestions.length }})</h2>
         <a-collapse v-if="answeredQuestions.length > 0" accordion>
           <a-collapse-panel
             v-for="question in answeredQuestions"
@@ -79,33 +79,33 @@
             :header="`${question.patientName}: ${question.question.substring(0, 50)}...`"
           >
             <div class="answered-content">
-              <p class="question-text"><strong>问题:</strong> {{ question.question }}</p>
-              <p class="answer-text"><strong>回复:</strong> {{ question.answer }}</p>
-              <p class="answer-time">回复时间: {{ formatTime(question.answerTime!) }}</p>
+              <p class="question-text"><strong>{{ t('doctorRoom.question') }}:</strong> {{ question.question }}</p>
+              <p class="answer-text"><strong>{{ t('doctorRoom.replyQuestion') }}:</strong> {{ question.answer }}</p>
+              <p class="answer-time">{{ t('doctorRoom.answerTime') }}: {{ formatTime(question.answerTime!) }}</p>
             </div>
           </a-collapse-panel>
         </a-collapse>
-        <a-empty v-else description="暂无已解答问题" />
+        <a-empty v-else :description="t('doctorRoom.noAnsweredQuestions')" />
       </div>
     </div>
 
     <a-modal
       v-model:open="answerModalVisible"
-      title="回复问题"
+      :title="t('doctorRoom.replyQuestion')"
       @ok="submitAnswer"
       @cancel="closeAnswerModal"
       :confirmLoading="submitting"
     >
       <div v-if="selectedQuestion" class="modal-content">
         <div class="question-info">
-          <p><strong>患者:</strong> {{ selectedQuestion.patientName }}</p>
-          <p><strong>问题:</strong> {{ selectedQuestion.question }}</p>
+          <p><strong>{{ t('doctorRoom.patient') }}:</strong> {{ selectedQuestion.patientName }}</p>
+          <p><strong>{{ t('doctorRoom.question') }}:</strong> {{ selectedQuestion.question }}</p>
         </div>
-        <a-form-item label="您的回复">
+        <a-form-item :label="t('doctorRoom.yourReply')">
           <a-textarea
             v-model:value="answerText"
             :rows="6"
-            placeholder="请输入您的专业建议和回复..."
+            :placeholder="t('doctorRoom.replyPlaceholder')"
           />
         </a-form-item>
       </div>
@@ -117,6 +117,7 @@
 import { computed, ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { message } from 'ant-design-vue';
+import { useI18n } from 'vue-i18n';
 import dayjs from 'dayjs';
 import {
   CopyOutlined,
@@ -128,6 +129,7 @@ import {
 } from '@ant-design/icons-vue';
 import { store, Question } from '../store';
 
+const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 
@@ -154,24 +156,24 @@ const submitting = ref(false);
 
 onMounted(() => {
   if (!currentDoctor.value || currentDoctor.value.username !== username) {
-    message.error('请先登录');
+    message.error(t('doctorRoom.pleaseLoginFirst'));
     router.push('/doctor/login');
   }
 });
 
 const copyRoomUrl = () => {
   navigator.clipboard.writeText(roomUrl.value);
-  message.success('诊室链接已复制到剪贴板');
+  message.success(t('doctorRoom.roomUrlCopied'));
 };
 
 const logout = () => {
   store.logoutDoctor();
-  message.success('已退出登录');
+  message.success(t('doctorRoom.loggedOut'));
   router.push('/');
 };
 
 const refreshQuestions = () => {
-  message.success('已刷新问题列表');
+  message.success(t('doctorRoom.questionsRefreshed'));
 };
 
 const formatTime = (time: string) => {
@@ -192,7 +194,7 @@ const closeAnswerModal = () => {
 
 const submitAnswer = () => {
   if (!answerText.value.trim()) {
-    message.error('请输入回复内容');
+    message.error(t('doctorRoom.pleaseEnterReply'));
     return;
   }
 
@@ -201,7 +203,7 @@ const submitAnswer = () => {
   setTimeout(() => {
     if (selectedQuestion.value) {
       store.answerQuestion(selectedQuestion.value.id, answerText.value);
-      message.success('回复成功');
+      message.success(t('doctorRoom.replySuccess'));
       closeAnswerModal();
     }
     submitting.value = false;
@@ -210,7 +212,7 @@ const submitAnswer = () => {
 
 const markAsAnswered = (questionId: string) => {
   store.markQuestionAsAnswered(questionId);
-  message.success('已标记为已解答');
+  message.success(t('doctorRoom.markedAsAnswered'));
 };
 </script>
 

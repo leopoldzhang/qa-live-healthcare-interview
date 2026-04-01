@@ -1,23 +1,24 @@
 <template>
   <div class="doctors-page">
     <div class="page-header">
-      <h1>医生团队</h1>
-      <p>我们的专业医疗团队随时为您服务</p>
+      <h1>{{ t('doctors.title') }}</h1>
+      <p>{{ t('doctors.subtitle') }}</p>
     </div>
 
     <div class="doctors-container">
-      <div class="doctors-grid">
-        <a-card
-          v-for="doctor in allDoctors"
-          :key="doctor.id"
-          class="doctor-card"
-          :class="{ 'active': doctor.isActive }"
-        >
+      <Spin :spinning="loading" size="large" :tip="t('common.loading')">
+        <div class="doctors-grid">
+          <a-card
+            v-for="doctor in allDoctors"
+            :key="doctor.id"
+            class="doctor-card"
+            :class="{ 'active': doctor.isActive }"
+          >
           <div class="card-header">
             <img :src="doctor.avatar" :alt="doctor.name" class="doctor-avatar" />
             <a-badge
               :status="doctor.isActive ? 'processing' : 'default'"
-              :text="doctor.isActive ? '在线' : '离线'"
+              :text="doctor.isActive ? t('common.online') : t('common.offline')"
             />
           </div>
           <div class="card-body">
@@ -38,23 +39,38 @@
               :disabled="!doctor.isActive"
               @click="goToConsultation(doctor)"
             >
-              {{ doctor.isActive ? '进入诊室' : '暂未开放' }}
+              {{ doctor.isActive ? t('doctors.enterRoom') : t('doctors.notAvailable') }}
             </a-button>
           </div>
         </a-card>
-      </div>
+        </div>
+      </Spin>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { store, Doctor } from '../store';
+import { Spin } from 'ant-design-vue';
+
+const { t } = useI18n();
 
 const router = useRouter();
+const loading = ref(true);
+const allDoctors = ref<Doctor[]>([]);
 
-const allDoctors = computed(() => store.state.doctors);
+onMounted(async () => {
+  try {
+    allDoctors.value = await store.getActiveDoctors();
+  } catch (error) {
+    console.error('Failed to load doctors:', error);
+  } finally {
+    loading.value = false;
+  }
+});
 
 const goToConsultation = (doctor: Doctor) => {
   router.push(`/consultation/${doctor.username}`);

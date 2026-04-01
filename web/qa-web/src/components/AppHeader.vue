@@ -3,30 +3,41 @@
     <div class="header-content">
       <div class="logo">
         <img src="https://images.pexels.com/photos/40568/medical-appointment-doctor-healthcare-40568.jpeg?auto=compress&cs=tinysrgb&w=100" alt="QA Live Healthcare" />
-        <span>QA Live Healthcare</span>
+        <span>{{ t('header.logo') }}</span>
       </div>
       <a-menu v-model:selectedKeys="selectedKeys" mode="horizontal" class="nav-menu">
         <a-menu-item key="home" @click="navigateTo('/')">
           <HomeOutlined />
-          首页
+          {{ t('header.home') }}
         </a-menu-item>
         <a-menu-item key="consultation" @click="navigateTo('/consultation')">
           <MessageOutlined />
-          问诊
+          {{ t('header.consultation') }}
         </a-menu-item>
         <a-menu-item key="doctors" @click="navigateTo('/doctors')">
           <TeamOutlined />
-          医生
+          {{ t('header.doctors') }}
         </a-menu-item>
         <a-menu-item key="about" @click="navigateTo('/about')">
           <InfoCircleOutlined />
-          关于
+          {{ t('header.about') }}
         </a-menu-item>
       </a-menu>
-      <a-button type="primary" class="login-btn" @click="navigateTo('/doctor/login')">
-        <UserOutlined />
-        医生登录
-      </a-button>
+      <div class="header-actions">
+        <a-button type="primary" class="login-btn" @click="navigateTo('/doctor/login')">
+          <UserOutlined />
+          {{ t('header.doctorLogin') }}
+        </a-button>
+        <a-select
+          v-model:value="currentLocale"
+          @change="changeLanguage"
+          :style="{ width: 120 }"
+          class="language-selector"
+        >
+          <a-select-option value="zh-CN">中文</a-select-option>
+          <a-select-option value="en-US">English</a-select-option>
+        </a-select>
+      </div>
     </div>
   </a-layout-header>
 </template>
@@ -35,6 +46,10 @@
 import { ref, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { HomeOutlined, MessageOutlined, TeamOutlined, InfoCircleOutlined, UserOutlined } from '@ant-design/icons-vue';
+import { useI18n } from 'vue-i18n';
+
+const { locale, t } = useI18n();
+const currentLocale = ref(locale.value);
 
 const router = useRouter();
 const route = useRoute();
@@ -54,6 +69,12 @@ watch(() => route.path, (newPath) => {
 
 const navigateTo = (path: string) => {
   router.push(path);
+};
+
+const changeLanguage = (value: string) => {
+  locale.value = value;
+  localStorage.setItem('locale', value);
+  currentLocale.value = value;
 };
 </script>
 
@@ -116,5 +137,15 @@ const navigateTo = (path: string) => {
 .login-btn:hover {
   background: #73d13d;
   border-color: #73d13d;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.language-selector {
+  min-width: 120px;
 }
 </style>

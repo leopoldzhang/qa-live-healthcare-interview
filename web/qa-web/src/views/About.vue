@@ -1,93 +1,90 @@
 <template>
   <div class="about-page">
     <div class="page-header">
-      <h1>关于我们</h1>
-      <p>专业、便捷、值得信赖的在线医疗问诊平台</p>
+      <h1>{{ t('about.title') }}</h1>
+      <p>{{ t('about.subtitle') }}</p>
     </div>
 
     <div class="about-content">
       <section class="section">
-        <h2>平台简介</h2>
-        <p>
-          QA Live Healthcare 是一个专业的在线医疗问诊平台,致力于为患者提供便捷、高效的医疗咨询服务。
-          我们通过连接专业医生与患者,打破地域限制,让优质的医疗资源触手可及。
-        </p>
+        <h2>{{ t('about.introduction.title') }}</h2>
+        <p>{{ t('about.introduction.content') }}</p>
       </section>
 
       <section class="section features-section">
-        <h2>平台特色</h2>
+        <h2>{{ t('about.features.title') }}</h2>
         <div class="features-grid">
           <div class="feature-card">
             <TeamOutlined class="feature-icon" />
-            <h3>专业医生团队</h3>
-            <p>汇聚各科室资深医生,均具备丰富的临床经验和专业资质</p>
+            <h3>{{ t('about.features.team.title') }}</h3>
+            <p>{{ t('about.features.team.content') }}</p>
           </div>
           <div class="feature-card">
             <ClockCircleOutlined class="feature-icon" />
-            <h3>实时在线问诊</h3>
-            <p>7x24小时在线服务,医生快速响应,及时解答您的健康问题</p>
+            <h3>{{ t('about.features.realtime.title') }}</h3>
+            <p>{{ t('about.features.realtime.content') }}</p>
           </div>
           <div class="feature-card">
             <SafetyCertificateOutlined class="feature-icon" />
-            <h3>隐私安全保护</h3>
-            <p>严格的信息安全措施,保护您的个人隐私和医疗信息</p>
+            <h3>{{ t('about.features.privacy.title') }}</h3>
+            <p>{{ t('about.features.privacy.content') }}</p>
           </div>
           <div class="feature-card">
             <MobileOutlined class="feature-icon" />
-            <h3>便捷易用</h3>
-            <p>简洁的操作界面,随时随地通过手机或电脑进行问诊</p>
+            <h3>{{ t('about.features.convenience.title') }}</h3>
+            <p>{{ t('about.features.convenience.content') }}</p>
           </div>
         </div>
       </section>
 
       <section class="section">
-        <h2>服务流程</h2>
+        <h2>{{ t('about.process.title') }}</h2>
         <div class="process-steps">
           <div class="step">
             <div class="step-number">1</div>
-            <h3>选择医生</h3>
-            <p>浏览医生列表,选择适合的专科医生</p>
+            <h3>{{ t('about.process.step1.title') }}</h3>
+            <p>{{ t('about.process.step1.content') }}</p>
           </div>
           <div class="step">
             <div class="step-number">2</div>
-            <h3>提交问题</h3>
-            <p>详细描述您的症状和问题</p>
+            <h3>{{ t('about.process.step2.title') }}</h3>
+            <p>{{ t('about.process.step2.content') }}</p>
           </div>
           <div class="step">
             <div class="step-number">3</div>
-            <h3>医生解答</h3>
-            <p>医生会及时查看并回复您的问题</p>
+            <h3>{{ t('about.process.step3.title') }}</h3>
+            <p>{{ t('about.process.step3.content') }}</p>
           </div>
           <div class="step">
             <div class="step-number">4</div>
-            <h3>查看回复</h3>
-            <p>在个人中心查看医生的专业建议</p>
+            <h3>{{ t('about.process.step4.title') }}</h3>
+            <p>{{ t('about.process.step4.content') }}</p>
           </div>
         </div>
       </section>
 
       <section class="section contact-section">
-        <h2>联系我们</h2>
+        <h2>{{ t('about.contact.title') }}</h2>
         <div class="contact-info">
           <div class="contact-item">
             <PhoneOutlined class="contact-icon" />
             <div>
-              <h4>客服热线</h4>
-              <p>400-123-4567</p>
+              <h4>{{ t('about.contact.phone.title') }}</h4>
+              <p>{{ t('about.contact.phone.value') }}</p>
             </div>
           </div>
           <div class="contact-item">
             <MailOutlined class="contact-icon" />
             <div>
-              <h4>电子邮箱</h4>
-              <p>service@qalive.com</p>
+              <h4>{{ t('about.contact.email.title') }}</h4>
+              <p>{{ t('about.contact.email.value') }}</p>
             </div>
           </div>
           <div class="contact-item">
             <EnvironmentOutlined class="contact-icon" />
             <div>
-              <h4>服务时间</h4>
-              <p>周一至周日 8:00-22:00</p>
+              <h4>{{ t('about.contact.hours.title') }}</h4>
+              <p>{{ t('about.contact.hours.value') }}</p>
             </div>
           </div>
         </div>
@@ -97,6 +94,7 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
 import {
   TeamOutlined,
   ClockCircleOutlined,
@@ -106,6 +104,8 @@ import {
   MailOutlined,
   EnvironmentOutlined
 } from '@ant-design/icons-vue';
+
+const { t } = useI18n();
 </script>
 
 <style scoped>
