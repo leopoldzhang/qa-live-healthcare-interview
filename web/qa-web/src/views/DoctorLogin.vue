@@ -56,7 +56,7 @@
 
 <script setup lang="ts">
 import { reactive, ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { message } from 'ant-design-vue';
 import { useI18n } from 'vue-i18n';
 import { UserOutlined, LockOutlined } from '@ant-design/icons-vue';
@@ -65,6 +65,7 @@ import { store } from '../store';
 const { t } = useI18n();
 
 const router = useRouter();
+const route = useRoute();
 const loading = ref(false);
 
 const formState = reactive({
@@ -85,7 +86,8 @@ const onFinish = async () => {
 
     if (doctor) {
       message.success(t('doctorLogin.loginSuccess'));
-      router.push(`/doctor/room/${doctor.username}`);
+      const redirect = route.query.redirect as string;
+      router.push(redirect || '/doctor/schedule');
     } else {
       message.error(t('doctorLogin.loginFailed'));
     }
