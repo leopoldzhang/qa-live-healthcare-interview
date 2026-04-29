@@ -36,7 +36,7 @@ const i18n = createI18n({
   // 禁用消息编译，避免 @ 符号被解析
   messageResolver: messageResolver,
   // 设置为空消息编译器以禁用链接格式解析
-  messageCompiler: (message: string) => (ctx: any) => message
+  messageCompiler: (message: string) => (_ctx: any) => message
 });
 
 const app = createApp(App);

@@ -25,6 +25,9 @@
           <a-button size="large" @click="navigateTo('/doctors')">
             {{ t('home.hero.buttons.viewDoctors') }}
           </a-button>
+          <a-button size="large" @click="navigateTo('/appointments')">
+            {{ t('home.hero.buttons.appointment') }}
+          </a-button>
         </div>
 
         <div class="hero-auth">

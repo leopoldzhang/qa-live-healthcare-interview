@@ -31,7 +31,8 @@ export default {
       },
       buttons: {
         start: 'Start Consultation',
-        viewDoctors: 'View Doctors'
+        viewDoctors: 'View Doctors',
+        appointment: 'Book Appointment'
       }
     },
     statistics: {
@@ -54,6 +55,7 @@ export default {
     logo: 'QA Live Healthcare',
     home: 'Home',
     consultation: 'Consultation',
+    appointment: 'Appointment',
     doctors: 'Doctors',
     about: 'About',
     doctorLogin: 'Doctor Login',
