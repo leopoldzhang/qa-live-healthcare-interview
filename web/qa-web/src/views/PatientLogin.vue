@@ -81,7 +81,7 @@
 
 <script setup lang="ts">
 import { reactive, ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { message } from 'ant-design-vue';
 import { useI18n } from 'vue-i18n';
 import { UserOutlined, LockOutlined } from '@ant-design/icons-vue';
@@ -91,6 +91,7 @@ import { store } from '../store';
 const { t } = useI18n();
 
 const router = useRouter();
+const route = useRoute();
 
 const loginForm = reactive({
   username: '',
@@ -126,8 +127,9 @@ const handleLogin = async () => {
       store.loginPatient(response.data);
       message.success(t('patientLogin.loginSuccess'));
 
-      // 跳转到问诊页面
-      router.push('/consultation');
+      // 跳转到预约列表页面
+      const redirect = route.query.redirect as string;
+      router.push(redirect || '/appointments');
     } else {
       errorMessage.value = response.message || t('patientLogin.loginFailed');
     }

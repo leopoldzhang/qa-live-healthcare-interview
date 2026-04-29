@@ -31,7 +31,8 @@ export default {
       },
       buttons: {
         start: '立即问诊',
-        viewDoctors: '查看医生'
+        viewDoctors: '查看医生',
+        appointment: '预约挂号'
       }
     },
     statistics: {
@@ -54,6 +55,7 @@ export default {
     logo: 'QA Live Healthcare',
     home: '首页',
     consultation: '问诊',
+    appointment: '预约挂号',
     doctors: '医生',
     about: '关于',
     doctorLogin: '医生登录',

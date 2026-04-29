@@ -66,6 +66,15 @@ if (savedPatient) {
   }
 }
 
+const savedDoctor = localStorage.getItem('currentDoctor');
+if (savedDoctor) {
+  try {
+    state.currentDoctor = JSON.parse(savedDoctor);
+  } catch (error) {
+    console.error('Failed to parse saved doctor:', error);
+  }
+}
+
 const doctorsLoaded = ref(false);
 
 // 从 API 加载医生数据
@@ -99,6 +108,7 @@ export const store = {
     );
     if (doctor) {
       state.currentDoctor = doctor;
+      localStorage.setItem('currentDoctor', JSON.stringify(doctor));
       return doctor;
     }
     return null;
@@ -106,6 +116,7 @@ export const store = {
 
   logoutDoctor() {
     state.currentDoctor = null;
+    localStorage.removeItem('currentDoctor');
   },
 
   verifyPatient(name: string, birthday: string): Patient {
