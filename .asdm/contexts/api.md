@@ -399,7 +399,428 @@ GET /api/auth/patient/check-username?username=patient001
 
 ---
 
-### 3. TestController (CORS 测试)
+### 3. AppointmentController (预约管理)
+
+**源码**: `server/qa-service-user/src/main/java/com/leansofx/qaserviceuser/controller/AppointmentController.java`
+
+**描述**: 处理患者预约医生的相关操作。
+
+**基础路径**: `/api/appointment`
+
+| 端点 | 方法 | 说明 | 状态 |
+|------|------|------|------|
+| `/` | POST | 创建预约 | 201, 400 |
+| `/{appointmentNo}` | GET | 根据预约单号查询预约 | 200, 400 |
+| `/patient/{patientId}` | GET | 根据患者ID查询预约记录 | 200, 400 |
+| `/{appointmentNo}/cancel` | PUT | 取消预约 | 200, 400 |
+| `/{appointmentNo}/confirm` | PUT | 确认预约（医生） | 200, 400 |
+| `/{appointmentNo}/complete` | PUT | 完成预约（医生） | 200, 400 |
+
+#### POST /api/appointment
+
+**描述**: 创建预约。
+
+**请求参数**:
+
+| 参数 | 类型 | 必需 | 说明 | 示例 |
+|------|------|------|------|------|
+| `patientId` | string | 是 | 患者ID | `"patient001"` |
+| `doctorId` | string | 是 | 医生ID | `"doc001"` |
+| `appointmentDate` | string | 是 | 预约日期 | `"2026-04-30"` |
+| `timeSlot` | string | 是 | 时间段 | `"09:00-09:30"` |
+| `location` | string | 否 | 地点 | `"门诊楼3楼"` |
+| `description` | string | 否 | 描述 | `"初诊"` |
+
+**请求示例**:
+```json
+{
+  "patientId": "patient001",
+  "doctorId": "doc001",
+  "appointmentDate": "2026-04-30",
+  "timeSlot": "09:00-09:30",
+  "location": "门诊楼3楼",
+  "description": "初诊"
+}
+```
+
+**成功响应 (201)**:
+```json
+{
+  "code": 200,
+  "data": {
+    "id": "1",
+    "appointmentNo": "APT1234567890",
+    "patientId": "patient001",
+    "patientName": "张三",
+    "doctorId": "doc001",
+    "doctorName": "张伟医生",
+    "appointmentDate": "2026-04-30",
+    "timeSlot": "09:00-09:30",
+    "location": "门诊楼3楼",
+    "status": "PENDING",
+    "description": "初诊",
+    "createTime": "2026-04-29T10:30:00"
+  },
+  "message": "预约成功"
+}
+```
+
+**错误响应**:
+- **1003** - 患者不存在或医生不存在
+- **1004** - 预约日期/时间段为空，或医生排班不可用，或医生该时间段已约满，或重复预约
+- **1005** - 系统繁忙
+
+---
+
+#### GET /api/appointment/{appointmentNo}
+
+**描述**: 根据预约单号查询预约详情。
+
+**路径参数**:
+
+| 参数 | 类型 | 必需 | 说明 | 示例 |
+|------|------|------|------|------|
+| `appointmentNo` | string | 是 | 预约单号 | `"APT1234567890"` |
+
+**成功响应 (200)**:
+```json
+{
+  "code": 200,
+  "data": {
+    "id": "1",
+    "appointmentNo": "APT1234567890",
+    "patientId": "patient001",
+    "patientName": "张三",
+    "doctorId": "doc001",
+    "doctorName": "张伟医生",
+    "appointmentDate": "2026-04-30",
+    "timeSlot": "09:00-09:30",
+    "location": "门诊楼3楼",
+    "status": "PENDING",
+    "description": "初诊",
+    "createTime": "2026-04-29T10:30:00",
+    "updateTime": "2026-04-29T10:30:00"
+  },
+  "message": "success"
+}
+```
+
+**错误响应**:
+- **1003** - 预约不存在
+
+---
+
+#### GET /api/appointment/patient/{patientId}
+
+**描述**: 根据患者ID查询预约记录（可筛选状态）。
+
+**路径参数**:
+
+| 参数 | 类型 | 必需 | 说明 | 示例 |
+|------|------|------|------|------|
+| `patientId` | string | 是 | 患者ID | `"patient001"` |
+
+**查询参数**:
+
+| 参数 | 类型 | 必需 | 说明 | 示例 |
+|------|------|------|------|------|
+| `status` | string | 否 | 预约状态筛选 | `"PENDING"` |
+
+**成功响应 (200)**:
+```json
+{
+  "code": 200,
+  "data": [
+    {
+      "id": "1",
+      "appointmentNo": "APT1234567890",
+      "patientId": "patient001",
+      "patientName": "张三",
+      "doctorId": "doc001",
+      "doctorName": "张伟医生",
+      "appointmentDate": "2026-04-30",
+      "timeSlot": "09:00-09:30",
+      "location": "门诊楼3楼",
+      "status": "PENDING",
+      "description": "初诊",
+      "createTime": "2026-04-29T10:30:00"
+    }
+  ],
+  "message": "success"
+}
+```
+
+---
+
+#### PUT /api/appointment/{appointmentNo}/cancel
+
+**描述**: 取消预约。
+
+**路径参数**:
+
+| 参数 | 类型 | 必需 | 说明 | 示例 |
+|------|------|------|------|------|
+| `appointmentNo` | string | 是 | 预约单号 | `"APT1234567890"` |
+
+**成功响应 (200)**:
+```json
+{
+  "code": 200,
+  "data": {
+    "id": "1",
+    "appointmentNo": "APT1234567890",
+    "status": "CANCELLED",
+    "updateTime": "2026-04-29T11:00:00"
+  },
+  "message": "预约已取消"
+}
+```
+
+**错误响应**:
+- **1003** - 预约不存在
+- **1004** - 无法取消预约（状态不允许）
+
+---
+
+#### PUT /api/appointment/{appointmentNo}/confirm
+
+**描述**: 确认预约（医生操作）。
+
+**路径参数**:
+
+| 参数 | 类型 | 必需 | 说明 | 示例 |
+|------|------|------|------|------|
+| `appointmentNo` | string | 是 | 预约单号 | `"APT1234567890"` |
+
+**成功响应 (200)**:
+```json
+{
+  "code": 200,
+  "data": {
+    "id": "1",
+    "appointmentNo": "APT1234567890",
+    "status": "CONFIRMED",
+    "updateTime": "2026-04-29T11:30:00"
+  },
+  "message": "预约已确认"
+}
+```
+
+**错误响应**:
+- **1003** - 预约不存在
+- **1004** - 无法确认预约（状态不允许）
+
+---
+
+#### PUT /api/appointment/{appointmentNo}/complete
+
+**描述**: 完成预约（医生操作）。
+
+**路径参数**:
+
+| 参数 | 类型 | 必需 | 说明 | 示例 |
+|------|------|------|------|------|
+| `appointmentNo` | string | 是 | 预约单号 | `"APT1234567890"` |
+
+**成功响应 (200)**:
+```json
+{
+  "code": 200,
+  "data": {
+    "id": "1",
+    "appointmentNo": "APT1234567890",
+    "status": "COMPLETED",
+    "updateTime": "2026-04-30T09:30:00"
+  },
+  "message": "预约已完成"
+}
+```
+
+**错误响应**:
+- **1003** - 预约不存在
+- **1004** - 无法完成预约（状态不允许）
+
+---
+
+### 4. ScheduleController (排班管理)
+
+**源码**: `server/qa-service-user/src/main/java/com/leansofx/qaserviceuser/controller/ScheduleController.java`
+
+**描述**: 处理医生排班的相关操作。
+
+**基础路径**: `/api/schedule`
+
+| 端点 | 方法 | 说明 | 状态 |
+|------|------|------|------|
+| `/doctor/{doctorId}` | GET | 获取医生的排班列表 | 200, 400 |
+| `/available` | GET | 获取可用排班时间段 | 200, 400 |
+| `/` | POST | 创建排班 | 201, 400 |
+| `/{scheduleId}` | PUT | 更新排班 | 200, 400 |
+| `/{scheduleId}` | DELETE | 删除排班 | 200, 400 |
+
+#### GET /api/schedule/doctor/{doctorId}
+
+**描述**: 获取指定医生的排班列表。
+
+**路径参数**:
+
+| 参数 | 类型 | 必需 | 说明 | 示例 |
+|------|------|------|------|------|
+| `doctorId` | string | 是 | 医生ID | `"doc001"` |
+
+**成功响应 (200)**:
+```json
+{
+  "code": 200,
+  "data": [
+    {
+      "id": "1",
+      "doctorId": "doc001",
+      "doctorName": "张伟医生",
+      "scheduleDate": "2026-04-30",
+      "timeSlot": "09:00-09:30",
+      "location": "门诊楼3楼",
+      "maxAppointments": 1,
+      "bookedCount": 0,
+      "available": true
+    }
+  ],
+  "message": "success"
+}
+```
+
+---
+
+#### GET /api/schedule/available
+
+**描述**: 获取可用排班时间段。
+
+**查询参数**:
+
+| 参数 | 类型 | 必需 | 说明 | 示例 |
+|------|------|------|------|------|
+| `doctorId` | string | 否 | 医生ID | `"doc001"` |
+| `startDate` | string | 否 | 开始日期 | `"2026-04-30"` |
+| `endDate` | string | 否 | 结束日期 | `"2026-05-07"` |
+
+**成功响应 (200)**:
+```json
+{
+  "code": 200,
+  "data": [
+    {
+      "id": "1",
+      "doctorId": "doc001",
+      "doctorName": "张伟医生",
+      "scheduleDate": "2026-04-30",
+      "timeSlot": "09:00-09:30",
+      "location": "门诊楼3楼",
+      "maxAppointments": 1,
+      "bookedCount": 0,
+      "available": true
+    }
+  ],
+  "message": "success"
+}
+```
+
+---
+
+#### POST /api/schedule
+
+**描述**: 创建排班（医生操作）。
+
+**请求参数**:
+
+| 参数 | 类型 | 必需 | 说明 | 示例 |
+|------|------|------|------|------|
+| `doctorId` | string | 是 | 医生ID | `"doc001"` |
+| `doctorName` | string | 是 | 医生姓名 | `"张伟医生"` |
+| `scheduleDate` | string | 是 | 排班日期 | `"2026-04-30"` |
+| `timeSlot` | string | 是 | 时间段 | `"09:00-09:30"` |
+| `location` | string | 否 | 地点 | `"门诊楼3楼"` |
+| `maxAppointments` | int | 否 | 最大预约数 | `1` |
+
+**成功响应 (201)**:
+```json
+{
+  "code": 200,
+  "data": {
+    "id": "1",
+    "doctorId": "doc001",
+    "doctorName": "张伟医生",
+    "scheduleDate": "2026-04-30",
+    "timeSlot": "09:00-09:30",
+    "location": "门诊楼3楼",
+    "maxAppointments": 1,
+    "bookedCount": 0,
+    "available": true
+  },
+  "message": "排班创建成功"
+}
+```
+
+---
+
+#### PUT /api/schedule/{scheduleId}
+
+**描述**: 更新排班信息。
+
+**路径参数**:
+
+| 参数 | 类型 | 必需 | 说明 | 示例 |
+|------|------|------|------|------|
+| `scheduleId` | string | 是 | 排班ID | `"1"` |
+
+**请求参数**:
+
+| 参数 | 类型 | 必需 | 说明 | 示例 |
+|------|------|------|------|------|
+| `scheduleDate` | string | 否 | 排班日期 | `"2026-05-01"` |
+| `timeSlot` | string | 否 | 时间段 | `"10:00-10:30"` |
+| `location` | string | 否 | 地点 | `"门诊楼4楼"` |
+| `maxAppointments` | int | 否 | 最大预约数 | `2` |
+
+**成功响应 (200)**:
+```json
+{
+  "code": 200,
+  "data": {
+    "id": "1",
+    "scheduleDate": "2026-05-01",
+    "timeSlot": "10:00-10:30",
+    "location": "门诊楼4楼",
+    "maxAppointments": 2,
+    "updateTime": "2026-04-29T12:00:00"
+  },
+  "message": "排班更新成功"
+}
+```
+
+---
+
+#### DELETE /api/schedule/{scheduleId}
+
+**描述**: 删除排班。
+
+**路径参数**:
+
+| 参数 | 类型 | 必需 | 说明 | 示例 |
+|------|------|------|------|------|
+| `scheduleId` | string | 是 | 排班ID | `"1"` |
+
+**成功响应 (200)**:
+```json
+{
+  "code": 200,
+  "data": null,
+  "message": "排班删除成功"
+}
+```
+
+---
+
+### 5. TestController (CORS 测试)
 
 **源码**: `server/qa-service-user/src/main/java/com/leansofx/qaserviceuser/controller/TestController.java`
 
@@ -530,6 +951,57 @@ interface Doctor {
   experience: string;
   isActive: boolean;
   specialties: string[];
+}
+```
+
+---
+
+### appointment.ts
+
+**源码**: `web/qa-web/src/api/appointment.ts`
+
+**封装的 API (预约)**:
+- `getAppointmentList(params)` - 获取预约列表
+- `createAppointment(data)` - 创建预约
+- `cancelAppointment(appointmentNo)` - 取消预约
+- `getAppointmentDetail(appointmentNo)` - 获取预约详情
+
+**封装的 API (排班)**:
+- `getSchedulesByDoctorId(doctorId)` - 获取医生的排班列表
+- `getAvailableSchedules(params)` - 获取可用排班时间段
+- `createSchedule(data)` - 创建排班
+- `updateSchedule(scheduleId, data)` - 更新排班
+- `deleteSchedule(scheduleId)` - 删除排班
+- `getScheduleById(scheduleId)` - 获取排班详情
+
+**类型定义**:
+```typescript
+interface Appointment {
+  id: string;
+  appointmentNo: string;
+  patientId: string;
+  patientName: string;
+  doctorId: string;
+  doctorName: string;
+  appointmentDate: string;
+  timeSlot: string;
+  location?: string;
+  status: 'PENDING' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED';
+  description?: string;
+  createTime: string;
+  updateTime: string;
+}
+
+interface Schedule {
+  id: string;
+  doctorId: string;
+  doctorName: string;
+  scheduleDate: string;
+  timeSlot: string;
+  location?: string;
+  maxAppointments: number;
+  bookedCount: number;
+  available: boolean;
 }
 ```
 

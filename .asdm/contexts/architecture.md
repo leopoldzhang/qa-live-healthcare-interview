@@ -81,10 +81,16 @@ graph TB
 - **通信**: 通过 REST API 进行数据交互（JSON 格式）
 
 ### 2. 微服务架构 (Microservices Architecture)
-- **用户服务 (qa-service-user)**: 管理患者和医生的注册、登录、信息查询
+- **用户服务 (qa-service-user)**: 管理患者和医生的注册、登录、信息查询、预约管理、排班管理
 - **问诊服务 (qa-service-question)**: 处理问诊核心功能（问答、记录等，待实现）
 - **独立部署**: 每个服务可以独立开发、测试和部署
 - **独立端口**: 用户服务 8080，问诊服务 8081
+
+### 3. 预约流程架构
+系统支持患者在线预约医生的功能，包含以下核心组件：
+- **预约管理**: 创建、查询、取消、确认、完成预约
+- **排班管理**: 医生设置可预约的时间段
+- **状态流转**: PENDING → CONFIRMED → COMPLETED 或 PENDING → CANCELLED
 
 ### 3. 分层架构 (Layered Architecture)
 ```

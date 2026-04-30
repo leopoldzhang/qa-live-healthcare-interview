@@ -9,8 +9,10 @@
 
 ```mermaid
 erDiagram
-    DOCTORS ||--o{ QUESTIONS : "接收问诊"
-    PATIENTS ||--o{ QUESTIONS : "发起问诊"
+    DOCTORS ||--o{ DOCTOR_SCHEDULES : "设置排班"
+    DOCTORS ||--o{ APPOINTMENTS : "接收预约"
+    PATIENTS ||--o{ APPOINTMENTS : "发起预约"
+    DOCTOR_SCHEDULES ||--o{ APPOINTMENTS : "关联排班"
     
     DOCTORS {
         string id PK "主键（VARCHAR(50)）"
@@ -38,17 +40,34 @@ erDiagram
         timestamp updated_at "更新时间"
     }
     
-    QUESTIONS {
+    DOCTOR_SCHEDULES {
+        string id PK "主键（VARCHAR(50)）"
+        string doctor_id FK "医生ID"
+        string doctor_name "医生姓名"
+        date schedule_date "排班日期"
+        string time_slot "时间段"
+        string location "地点"
+        int max_appointments "最大预约数"
+        int current_appointments "当前预约数"
+        string status "状态（AVAILABLE/UNAVAILABLE）"
+        timestamp create_time "创建时间"
+        timestamp update_time "更新时间"
+    }
+    
+    APPOINTMENTS {
         string id PK "主键（VARCHAR(50)）"
         string patient_id FK "患者ID"
         string patient_name "患者姓名"
         string doctor_id FK "医生ID"
         string doctor_name "医生姓名"
-        text question "问诊问题"
-        timestamp submit_time "提交时间"
-        enum status "状态（pending/answered）"
-        text answer "医生回复"
-        timestamp answer_time "回复时间"
+        date appointment_date "预约日期"
+        string time_slot "时间段"
+        string location "地点"
+        string status "状态（PENDING/CONFIRMED/COMPLETED/CANCELLED）"
+        string description "描述"
+        string appointment_no UK "预约单号（唯一）"
+        timestamp create_time "创建时间"
+        timestamp update_time "更新时间"
     }
 ```
 
@@ -172,76 +191,182 @@ CREATE TABLE patients (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
-### Question 实体（问诊问题）
-**用途**: 表示患者向医生发起的问诊记录，包含问题和回复信息。
+### Appointment 实体（预约）
+**用途**: 表示患者预约医生的记录，包含预约状态和相关信息。
 
 **数据库表结构**:
 ```sql
-CREATE TABLE questions (
+CREATE TABLE appointments (
     id VARCHAR(50) PRIMARY KEY,
     patient_id VARCHAR(50) NOT NULL,
     patient_name VARCHAR(100) NOT NULL,
     doctor_id VARCHAR(50) NOT NULL,
     doctor_name VARCHAR(100) NOT NULL,
-    question TEXT NOT NULL,
-    submit_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    status ENUM('pending', 'answered') DEFAULT 'pending',
-    answer TEXT,
-    answer_time TIMESTAMP NULL,
+    appointment_date DATE NOT NULL,
+    time_slot VARCHAR(50) NOT NULL,
+    location VARCHAR(200),
+    status ENUM('PENDING', 'CONFIRMED', 'COMPLETED', 'CANCELLED') DEFAULT 'PENDING',
+    description TEXT,
+    appointment_no VARCHAR(50) UNIQUE NOT NULL,
+    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (doctor_id) REFERENCES doctors(id) ON DELETE CASCADE,
     FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE,
     INDEX idx_doctor_id (doctor_id),
     INDEX idx_patient_id (patient_id),
-    INDEX idx_status (status)
+    INDEX idx_appointment_date (appointment_date),
+    INDEX idx_status (status),
+    INDEX idx_appointment_no (appointment_no)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
-**Java 实体类（待创建）**:
+**Java 实体类**: `com.leansofx.qaserviceuser.entity.Appointment`
+
 ```java
 @Entity
-@Table(name = "questions")
-public class Question {
+@Table(name = "appointments")
+public class Appointment {
     @Id
     private String id;
     
     @Column(name = "patient_id", nullable = false)
     private String patientId;
     
-    @Column(name = "patient_name", nullable = false)
+    @Column(name = "patient_name")
     private String patientName;
     
     @Column(name = "doctor_id", nullable = false)
     private String doctorId;
     
-    @Column(name = "doctor_name", nullable = false)
+    @Column(name = "doctor_name")
     private String doctorName;
     
+    @Column(name = "appointment_date", nullable = false)
+    private LocalDate appointmentDate;
+    
+    @Column(name = "time_slot", nullable = false)
+    private String timeSlot;
+    
+    private String location;
+    
     @Column(nullable = false)
-    private String question;
+    private String status = "PENDING";
     
-    @Column(name = "submit_time")
-    private LocalDateTime submitTime;
+    private String description;
     
-    @Enumerated(EnumType.STRING)
-    private QuestionStatus status = QuestionStatus.PENDING;
+    @Column(name = "appointment_no", unique = true)
+    private String appointmentNo;
     
-    private String answer;
+    @Column(name = "create_time")
+    private LocalDateTime createTime;
     
-    @Column(name = "answer_time")
-    private LocalDateTime answerTime;
+    @Column(name = "update_time")
+    private LocalDateTime updateTime;
     
-    @ManyToOne
-    @JoinColumn(name = "doctor_id", insertable = false, updatable = false)
-    private Doctor doctor;
+    // Constructors, Getters, Setters
     
-    @ManyToOne
-    @JoinColumn(name = "patient_id", insertable = false, updatable = false)
-    private Patient patient;
+    @PrePersist
+    protected void onCreate() {
+        createTime = LocalDateTime.now();
+        updateTime = LocalDateTime.now();
+        if (appointmentNo == null) {
+            appointmentNo = "APT" + System.currentTimeMillis();
+        }
+    }
+    
+    @PreUpdate
+    protected void onUpdate() {
+        updateTime = LocalDateTime.now();
+    }
 }
+```
 
-enum QuestionStatus {
-    PENDING,
-    ANSWERED
+---
+
+### DoctorSchedule 实体（医生排班）
+**用途**: 表示医生的排班安排，定义医生在哪些日期和时间段可以接受预约。
+
+**数据库表结构**:
+```sql
+CREATE TABLE doctor_schedules (
+    id VARCHAR(50) PRIMARY KEY,
+    doctor_id VARCHAR(50) NOT NULL,
+    doctor_name VARCHAR(100) NOT NULL,
+    schedule_date DATE NOT NULL,
+    time_slot VARCHAR(50) NOT NULL,
+    location VARCHAR(200),
+    max_appointments INT DEFAULT 1,
+    current_appointments INT DEFAULT 0,
+    status ENUM('AVAILABLE', 'UNAVAILABLE') DEFAULT 'AVAILABLE',
+    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (doctor_id) REFERENCES doctors(id) ON DELETE CASCADE,
+    INDEX idx_doctor_id (doctor_id),
+    INDEX idx_schedule_date (schedule_date),
+    INDEX idx_status (status),
+    UNIQUE KEY uk_doctor_schedule (doctor_id, schedule_date, time_slot)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+```
+
+**Java 实体类**: `com.leansofx.qaserviceuser.entity.DoctorSchedule`
+
+```java
+@Entity
+@Table(name = "doctor_schedules")
+public class DoctorSchedule {
+    @Id
+    private String id;
+    
+    @Column(name = "doctor_id", nullable = false)
+    private String doctorId;
+    
+    @Column(name = "doctor_name")
+    private String doctorName;
+    
+    @Column(name = "schedule_date", nullable = false)
+    private LocalDate scheduleDate;
+    
+    @Column(name = "time_slot", nullable = false)
+    private String timeSlot;
+    
+    private String location;
+    
+    @Column(name = "max_appointments")
+    private Integer maxAppointments = 1;
+    
+    @Column(name = "current_appointments")
+    private Integer currentAppointments = 0;
+    
+    @Column(nullable = false)
+    private String status = "AVAILABLE";
+    
+    @Column(name = "create_time")
+    private LocalDateTime createTime;
+    
+    @Column(name = "update_time")
+    private LocalDateTime updateTime;
+    
+    // Constructors, Getters, Setters
+    
+    @PrePersist
+    protected void onCreate() {
+        createTime = LocalDateTime.now();
+        updateTime = LocalDateTime.now();
+        if (maxAppointments == null) {
+            maxAppointments = 1;
+        }
+        if (currentAppointments == null) {
+            currentAppointments = 0;
+        }
+        if (status == null) {
+            status = "AVAILABLE";
+        }
+    }
+    
+    @PreUpdate
+    protected void onUpdate() {
+        updateTime = LocalDateTime.now();
+    }
 }
 ```
 

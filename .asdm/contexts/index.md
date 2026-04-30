@@ -42,7 +42,15 @@
 qa-live-healthcare-interview/
 ├── .asdm/                          # ASDM 配置和工具集
 │   ├── contexts/                   # 上下文文件（当前目录）
-│   │   └── index.md               # 本文档
+│   │   ├── index.md               # 本文档
+│   │   ├── architecture.md        # 系统架构
+│   │   ├── data-models.md        # 数据模型
+│   │   ├── api.md                # API 文档
+│   │   ├── deployment.md         # 部署配置
+│   │   ├── standard-coding-style.md   # 编码标准
+│   │   └── standard-project-structure.md   # 项目结构
+│   ├── workspace/                  # 工作区文件
+│   │   └── features/             # 功能特性文档
 │   └── toolsets/                   # 已安装的工具集
 │       ├── context-builder/        # 上下文构建工具
 │       ├── basic-tools/            # 基础工具集
@@ -51,8 +59,21 @@ qa-live-healthcare-interview/
 │   └── qa-web/                     # 主前端项目（Vue 3）
 │       ├── src/
 │       │   ├── api/                # API 接口定义
+│       │   │   ├── auth.ts        # 认证 API
+│       │   │   ├── doctor.ts      # 医生 API
+│       │   │   └── appointment.ts # 预约 API
 │       │   ├── components/         # Vue 组件
 │       │   ├── views/              # 页面视图
+│       │   │   ├── appointment/   # 预约相关页面
+│       │   │   │   ├── AddAppointment.vue
+│       │   │   │   ├── AppointmentList.vue
+│       │   │   │   └── DoctorSchedule.vue
+│       │   │   ├── Home.vue
+│       │   │   ├── Doctors.vue
+│       │   │   ├── Consultation.vue
+│       │   │   ├── PatientLogin.vue
+│       │   │   ├── PatientRegister.vue
+│       │   │   └── DoctorLogin.vue
 │       │   ├── router/             # 路由配置
 │       │   ├── store/              # 状态管理
 │       │   ├── locales/            # 国际化资源文件
@@ -63,7 +84,32 @@ qa-live-healthcare-interview/
 ├── server/                         # 后端服务目录
 │   ├── qa-service-user/            # 用户管理服务（端口 8080）
 │   │   ├── src/main/java/          # Java 源代码
+│   │   │   └── com/leansofx/qaserviceuser/
+│   │   │       ├── controller/     # REST 控制器
+│   │   │       │   ├── AuthController.java
+│   │   │       │   ├── DoctorController.java
+│   │   │       │   ├── AppointmentController.java  # 预约管理
+│   │   │       │   └── ScheduleController.java      # 排班管理
+│   │   │       ├── service/        # 业务逻辑层
+│   │   │       │   ├── PatientService.java
+│   │   │       │   ├── DoctorService.java
+│   │   │       │   ├── AppointmentService.java
+│   │   │       │   └── ScheduleService.java
+│   │   │       ├── repository/     # 数据访问层
+│   │   │       │   ├── PatientRepository.java
+│   │   │       │   ├── DoctorRepository.java
+│   │   │       │   ├── AppointmentRepository.java
+│   │   │       │   └── DoctorScheduleRepository.java
+│   │   │       ├── entity/        # 实体类
+│   │   │       │   ├── Patient.java
+│   │   │       │   ├── Doctor.java
+│   │   │       │   ├── Appointment.java        # 预约实体
+│   │   │       │   └── DoctorSchedule.java     # 排班实体
+│   │   │       └── dto/           # 数据传输对象
+│   │   │           ├── AppointmentRequest.java
+│   │   │           └── ScheduleRequest.java
 │   │   ├── src/main/resources/     # 配置文件
+│   │   ├── src/test/java/         # 测试代码
 │   │   ├── pom.xml                # Maven 配置
 │   │   └── mvnw                   # Maven wrapper
 │   └── qa-service-question/        # 问题管理服务（端口 8081）
@@ -72,7 +118,8 @@ qa-live-healthcare-interview/
 │       ├── pom.xml                # Maven 配置
 │       └── mvnw                   # Maven wrapper
 ├── docker/                         # Docker 配置目录
-│   └── init-db.sql                # 数据库初始化脚本
+│   ├── init-db.sql                # 数据库初始化脚本
+│   └── appointment-init-db.sql    # 预约数据库初始化脚本
 ├── docker-compose.yml              # Docker Compose 配置
 ├── docs/                           # 项目文档
 ├── _TRAINING_ASSETS/              # 培训资源
@@ -185,7 +232,7 @@ cd server/qa-service-question
 | 版本 | 日期 | 变更内容 | 作者 |
 |------|------|---------|------|
 | 1.0.0 | 2026-04-29 | 初始上下文创建 | AI Assistant |
-| 1.0.1 | 待定 | 待定 | 待定 |
+| 1.1.0 | 2026-04-30 | 添加预约功能相关上下文（Appointment、Schedule） | AI Assistant |
 
 ---
 
