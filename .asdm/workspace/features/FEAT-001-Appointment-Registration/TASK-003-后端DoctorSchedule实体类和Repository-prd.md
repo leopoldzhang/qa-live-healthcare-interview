@@ -4,7 +4,7 @@
 **Feature Name**: 预约挂号功能
 **Task ID**: TASK-003
 **Created Date**: 2026-04-29
-**Status**: TODO
+**Status**: DONE
 **Language**: zh (中文)
 
 ---
