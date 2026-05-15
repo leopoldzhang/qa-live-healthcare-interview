@@ -1,12 +1,13 @@
-import { reactive } from 'vue';
+import { reactive, ref } from 'vue';
 import doctorData from '../data/doctor-user-list.json';
 import patientData from '../data/patient-user.json';
 import questionData from '../data/question-list.json';
+import { doctorApi } from '../api/doctor';
 
 export interface Doctor {
   id: string;
   username: string;
-  password: string;
+  password?: string;
   name: string;
   title: string;
   department: string;
@@ -18,10 +19,12 @@ export interface Doctor {
 
 export interface Patient {
   id: string;
+  username?: string;
   name: string;
   birthday: string;
   phone: string;
   gender: string;
+  createdAt?: string;
 }
 
 export interface Question {
@@ -46,12 +49,55 @@ interface State {
 }
 
 const state = reactive<State>({
-  doctors: doctorData as Doctor[],
+  doctors: [],
   patients: patientData as Patient[],
   questions: questionData as Question[],
   currentDoctor: null,
   currentPatient: null,
 });
+
+// 从 localStorage 恢复登录状态
+const savedPatient = localStorage.getItem('currentPatient');
+if (savedPatient) {
+  try {
+    state.currentPatient = JSON.parse(savedPatient);
+  } catch (error) {
+    console.error('Failed to parse saved patient:', error);
+  }
+}
+
+const savedDoctor = localStorage.getItem('currentDoctor');
+if (savedDoctor) {
+  try {
+    state.currentDoctor = JSON.parse(savedDoctor);
+  } catch (error) {
+    console.error('Failed to parse saved doctor:', error);
+  }
+}
+
+const doctorsLoaded = ref(false);
+
+// 从 API 加载医生数据
+async function loadDoctors() {
+  if (doctorsLoaded.value) return;
+
+  try {
+    const doctors = await doctorApi.getAllDoctors();
+    state.doctors = doctors.map(doc => ({
+      ...doc,
+      password: '123456' // 添加密码用于登录验证
+    }));
+    doctorsLoaded.value = true;
+  } catch (error) {
+    console.error('Failed to load doctors from API, using fallback data:', error);
+    // 降级到本地 JSON 数据
+    state.doctors = doctorData as Doctor[];
+    doctorsLoaded.value = true;
+  }
+}
+
+// 初始化时加载医生数据
+loadDoctors();
 
 export const store = {
   state,
@@ -62,6 +108,7 @@ export const store = {
     );
     if (doctor) {
       state.currentDoctor = doctor;
+      localStorage.setItem('currentDoctor', JSON.stringify(doctor));
       return doctor;
     }
     return null;
@@ -69,6 +116,7 @@ export const store = {
 
   logoutDoctor() {
     state.currentDoctor = null;
+    localStorage.removeItem('currentDoctor');
   },
 
   verifyPatient(name: string, birthday: string): Patient {
@@ -91,8 +139,14 @@ export const store = {
     return patient;
   },
 
+  loginPatient(patient: Patient) {
+    state.currentPatient = patient;
+    localStorage.setItem('currentPatient', JSON.stringify(patient));
+  },
+
   logoutPatient() {
     state.currentPatient = null;
+    localStorage.removeItem('currentPatient');
   },
 
   getQuestionsByDoctor(doctorId: string): Question[] {
@@ -134,15 +188,21 @@ export const store = {
     }
   },
 
-  getDoctorByUsername(username: string): Doctor | undefined {
-    return state.doctors.find(d => d.username === username);
-  },
-
-  getActiveDoctors(): Doctor[] {
+  async getActiveDoctors(): Promise<Doctor[]> {
+    if (!doctorsLoaded.value) {
+      await loadDoctors();
+    }
     return state.doctors.filter(d => d.isActive);
   },
 
-  getStatistics() {
+  async getDoctorByUsername(username: string): Promise<Doctor | undefined> {
+    if (!doctorsLoaded.value) {
+      await loadDoctors();
+    }
+    return state.doctors.find(d => d.username === username);
+  },
+
+  async getStatistics() {
     const totalDoctors = state.doctors.length;
     const totalQuestions = state.questions.length;
     const activeSessions = state.questions.filter(q => q.status === 'pending').length;

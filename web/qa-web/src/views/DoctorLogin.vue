@@ -2,8 +2,8 @@
   <div class="doctor-login">
     <div class="login-container">
       <div class="login-header">
-        <h1>医生登录</h1>
-        <p>请使用您的医生账号登录系统</p>
+        <h1>{{ t('doctorLogin.title') }}</h1>
+        <p>{{ t('doctorLogin.subtitle') }}</p>
       </div>
       <a-form
         :model="formState"
@@ -12,11 +12,11 @@
         layout="vertical"
         class="login-form"
       >
-        <a-form-item label="用户名" name="username">
+        <a-form-item :label="t('doctorLogin.username')" name="username">
           <a-input
             v-model:value="formState.username"
             size="large"
-            placeholder="请输入用户名"
+            :placeholder="t('doctorLogin.usernamePlaceholder')"
           >
             <template #prefix>
               <UserOutlined />
@@ -24,11 +24,11 @@
           </a-input>
         </a-form-item>
 
-        <a-form-item label="密码" name="password">
+        <a-form-item :label="t('doctorLogin.password')" name="password">
           <a-input-password
             v-model:value="formState.password"
             size="large"
-            placeholder="请输入密码"
+            :placeholder="t('doctorLogin.passwordPlaceholder')"
           >
             <template #prefix>
               <LockOutlined />
@@ -38,14 +38,14 @@
 
         <a-form-item>
           <a-button type="primary" html-type="submit" size="large" block :loading="loading">
-            登录
+            {{ t('doctorLogin.loginButton') }}
           </a-button>
         </a-form-item>
       </a-form>
 
       <a-alert
-        message="测试账号提示"
-        description="用户名: dr-zhang-wei, 密码: 123456"
+        :message="t('doctorLogin.testAccount')"
+        :description="t('doctorLogin.testAccountInfo')"
         type="info"
         show-icon
         closable
@@ -56,12 +56,16 @@
 
 <script setup lang="ts">
 import { reactive, ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { message } from 'ant-design-vue';
+import { useI18n } from 'vue-i18n';
 import { UserOutlined, LockOutlined } from '@ant-design/icons-vue';
 import { store } from '../store';
 
+const { t } = useI18n();
+
 const router = useRouter();
+const route = useRoute();
 const loading = ref(false);
 
 const formState = reactive({
@@ -70,8 +74,8 @@ const formState = reactive({
 });
 
 const rules = {
-  username: [{ required: true, message: '请输入用户名' }],
-  password: [{ required: true, message: '请输入密码' }],
+  username: [{ required: true, message: t('doctorLogin.usernameRequired') }],
+  password: [{ required: true, message: t('doctorLogin.passwordRequired') }],
 };
 
 const onFinish = async () => {
@@ -81,10 +85,11 @@ const onFinish = async () => {
     const doctor = store.loginDoctor(formState.username, formState.password);
 
     if (doctor) {
-      message.success('登录成功');
-      router.push(`/doctor/room/${doctor.username}`);
+      message.success(t('doctorLogin.loginSuccess'));
+      const redirect = route.query.redirect as string;
+      router.push(redirect || '/doctor/schedule');
     } else {
-      message.error('用户名或密码错误');
+      message.error(t('doctorLogin.loginFailed'));
     }
 
     loading.value = false;

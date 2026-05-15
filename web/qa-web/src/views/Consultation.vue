@@ -3,19 +3,19 @@
     <div class="consultation-container">
       <div v-if="!currentPatient" class="auth-section">
         <div class="auth-card">
-          <h1>患者身份验证</h1>
-          <p>请输入您的姓名和生日以验证身份</p>
+          <h1>{{ t('consultation.patientVerification') }}</h1>
+          <p>{{ t('consultation.enterNameBirthday') }}</p>
           <a-form
             :model="authForm"
             :rules="authRules"
             @finish="verifyPatient"
             layout="vertical"
           >
-            <a-form-item label="姓名" name="name">
+            <a-form-item :label="t('consultation.name')" name="name">
               <a-input
                 v-model:value="authForm.name"
                 size="large"
-                placeholder="请输入您的姓名"
+                :placeholder="t('consultation.namePlaceholder')"
               >
                 <template #prefix>
                   <UserOutlined />
@@ -23,26 +23,26 @@
               </a-input>
             </a-form-item>
 
-            <a-form-item label="生日" name="birthday">
+            <a-form-item :label="t('consultation.birthday')" name="birthday">
               <a-date-picker
                 v-model:value="authForm.birthday"
                 size="large"
                 format="YYYY-MM-DD"
-                placeholder="请选择您的生日"
+                :placeholder="t('consultation.birthdayPlaceholder')"
                 style="width: 100%"
               />
             </a-form-item>
 
             <a-form-item>
               <a-button type="primary" html-type="submit" size="large" block>
-                验证身份
+                {{ t('consultation.verify') }}
               </a-button>
             </a-form-item>
           </a-form>
 
           <a-alert
-            message="提示"
-            description="输入任意姓名和生日即可使用。首次输入会自动创建账户,再次输入相同信息即可登录。"
+            :message="t('consultation.tip')"
+            :description="t('consultation.tipDescription')"
             type="info"
             show-icon
           />
@@ -54,21 +54,21 @@
           <div class="patient-info">
             <UserOutlined class="patient-icon-large" />
             <div>
-              <h1>{{ currentPatient.name }} 的问诊</h1>
-              <p>欢迎使用在线问诊服务</p>
+              <h1>{{ currentPatient.name }}{{ t('consultation.welcomeConsultation') }}</h1>
+              <p>{{ t('consultation.welcomeMessage') }}</p>
             </div>
           </div>
           <div class="portal-actions">
             <a-button @click="logoutPatient">
               <LogoutOutlined />
-              切换用户
+              {{ t('consultation.switchUser') }}
             </a-button>
           </div>
         </div>
 
         <div class="selected-doctor" v-if="selectedDoctor">
           <a-alert
-            :message="`当前诊室: ${selectedDoctor.name} - ${selectedDoctor.department}`"
+            :message="`${t('consultation.currentRoom')}: ${selectedDoctor.name} - ${selectedDoctor.department}`"
             type="success"
             show-icon
             closable
@@ -78,14 +78,14 @@
 
         <div class="questions-section">
           <div class="section-header">
-            <h2>我的问题</h2>
+            <h2>{{ t('consultation.myQuestions') }}</h2>
             <a-button type="primary" @click="showSubmitModal">
               <PlusOutlined />
-              提交问题
+              {{ t('consultation.submitQuestion') }}
             </a-button>
           </div>
 
-          <a-empty v-if="myQuestions.length === 0" description="您还没有提交过问题" />
+          <a-empty v-if="myQuestions.length === 0" :description="t('consultation.noQuestions')" />
 
           <div v-else class="my-questions-list">
             <a-card
@@ -97,17 +97,17 @@
                 <div class="question-title">
                   <span>{{ question.doctorName }}</span>
                   <a-tag :color="question.status === 'answered' ? 'green' : 'orange'">
-                    {{ question.status === 'answered' ? '已解答' : '待解答' }}
+                    {{ question.status === 'answered' ? t('consultation.answered') : t('consultation.pending') }}
                   </a-tag>
                 </div>
               </template>
               <div class="question-detail">
-                <p class="question-text"><strong>问题:</strong> {{ question.question }}</p>
-                <p class="submit-time">提交时间: {{ formatTime(question.submitTime) }}</p>
+                <p class="question-text"><strong>{{ t('consultation.questionText') }}:</strong> {{ question.question }}</p>
+                <p class="submit-time">{{ t('consultation.submitTime') }}: {{ formatTime(question.submitTime) }}</p>
                 <div v-if="question.status === 'answered'" class="answer-section">
                   <a-divider />
-                  <p class="answer-text"><strong>医生回复:</strong> {{ question.answer }}</p>
-                  <p class="answer-time">回复时间: {{ formatTime(question.answerTime!) }}</p>
+                  <p class="answer-text"><strong>{{ t('consultation.doctorReply') }}:</strong> {{ question.answer }}</p>
+                  <p class="answer-time">{{ t('consultation.submitTime') }}: {{ formatTime(question.answerTime!) }}</p>
                 </div>
               </div>
             </a-card>
@@ -118,18 +118,18 @@
 
     <a-modal
       v-model:open="submitModalVisible"
-      title="提交问题"
+      :title="t('consultation.submitQuestionTitle')"
       @ok="submitQuestion"
       @cancel="closeSubmitModal"
       :confirmLoading="submitting"
       width="600px"
     >
       <a-form layout="vertical">
-        <a-form-item label="选择医生" required>
+        <a-form-item :label="t('consultation.selectDoctor')" required>
           <a-select
             v-model:value="questionForm.doctorId"
             size="large"
-            placeholder="请选择您要咨询的医生"
+            :placeholder="t('consultation.selectDoctorPlaceholder')"
             :disabled="!!selectedDoctor"
           >
             <a-select-option
@@ -150,11 +150,11 @@
           </a-select>
         </a-form-item>
 
-        <a-form-item label="您的问题" required>
+        <a-form-item :label="t('consultation.yourQuestion')" required>
           <a-textarea
             v-model:value="questionForm.question"
             :rows="6"
-            placeholder="请详细描述您的症状或问题..."
+            :placeholder="t('consultation.questionPlaceholder')"
           />
         </a-form-item>
       </a-form>
@@ -164,8 +164,9 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { message } from 'ant-design-vue';
+import { useI18n } from 'vue-i18n';
 import dayjs, { Dayjs } from 'dayjs';
 import {
   UserOutlined,
@@ -174,7 +175,9 @@ import {
 } from '@ant-design/icons-vue';
 import { store, Doctor } from '../store';
 
+const { t } = useI18n();
 const route = useRoute();
+const router = useRouter();
 
 const currentPatient = computed(() => store.state.currentPatient);
 const myQuestions = computed(() =>
@@ -191,8 +194,8 @@ const authForm = reactive({
 });
 
 const authRules = {
-  name: [{ required: true, message: '请输入姓名' }],
-  birthday: [{ required: true, message: '请选择生日' }],
+  name: [{ required: true, message: t('consultation.namePlaceholder') }],
+  birthday: [{ required: true, message: t('consultation.birthdayPlaceholder') }],
 };
 
 const submitModalVisible = ref(false);
@@ -203,16 +206,17 @@ const questionForm = reactive({
   question: '',
 });
 
-const availableDoctors = computed(() => {
-  return selectedDoctor.value
-    ? [selectedDoctor.value]
-    : store.getActiveDoctors();
-});
+const availableDoctors = ref<Doctor[]>([]);
 
-onMounted(() => {
+const loadDoctors = async () => {
+  availableDoctors.value = await store.getActiveDoctors();
+};
+
+onMounted(async () => {
+  await loadDoctors();
   const doctorUsername = route.params.doctorUsername as string;
   if (doctorUsername) {
-    const doctor = store.getDoctorByUsername(doctorUsername);
+    const doctor = await store.getDoctorByUsername(doctorUsername);
     if (doctor && doctor.isActive) {
       selectedDoctor.value = doctor;
       questionForm.doctorId = doctor.id;
@@ -223,7 +227,7 @@ onMounted(() => {
 const verifyPatient = () => {
   const birthday = authForm.birthday?.format('YYYY-MM-DD');
   if (!birthday) {
-    message.error('请选择生日');
+    message.error(t('consultation.pleaseSelectBirthday'));
     return;
   }
 
@@ -234,16 +238,17 @@ const verifyPatient = () => {
   store.verifyPatient(authForm.name, birthday);
 
   if (existingPatientCount > 0) {
-    message.success('验证成功,欢迎回来!');
+    message.success(t('consultation.verifiedWelcomeBack'));
   } else {
-    message.success('首次登录,已为您创建账户!');
+    message.success(t('consultation.verifiedFirstTime'));
   }
 };
 
 const logoutPatient = () => {
   store.logoutPatient();
   selectedDoctor.value = null;
-  message.success('已切换用户');
+  message.success(t('consultation.loggedOut'));
+  router.push('/patient/login');
 };
 
 const clearSelectedDoctor = () => {
@@ -268,12 +273,12 @@ const closeSubmitModal = () => {
 
 const submitQuestion = () => {
   if (!questionForm.doctorId) {
-    message.error('请选择医生');
+    message.error(t('consultation.pleaseSelectDoctor'));
     return;
   }
 
   if (!questionForm.question.trim()) {
-    message.error('请输入问题');
+    message.error(t('consultation.pleaseEnterQuestion'));
     return;
   }
 
@@ -290,7 +295,7 @@ const submitQuestion = () => {
         question: questionForm.question,
       });
 
-      message.success('问题提交成功');
+      message.success(t('consultation.questionSubmitted'));
       closeSubmitModal();
     }
 
